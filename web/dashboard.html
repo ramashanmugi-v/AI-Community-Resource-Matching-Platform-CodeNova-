@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Community Dashboard</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+<body>
+
+<nav>
+
+    <h2>CommunityMatch</h2>
+
+    <div>
+
+        <a href="index.html">
+            Home
+        </a>
+
+        <a href="dashboard.html">
+            Dashboard
+        </a>
+
+        <a href="request.html">
+            Request Help
+        </a>
+
+        <a href="resources.html">
+            Resources
+        </a>
+
+        <a href="matching.html">
+            AI Matching
+        </a>
+
+    </div>
+
+</nav>
+
+
+<div class="container">
+
+    <h1>
+        Community Dashboard
+    </h1>
+
+    <p>
+        Manage requests, resources and AI matches.
+    </p>
+
+
+    <div class="cards">
+
+        <div class="card">
+
+            <h2 id="totalRequests">
+                0
+            </h2>
+
+            <p>
+                Total Requests
+            </p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h2 id="availableResources">
+                0
+            </h2>
+
+            <p>
+                Available Resources
+            </p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h2 id="successfulMatches">
+                0
+            </h2>
+
+            <p>
+                Successful Matches
+            </p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h2 id="fulfilledRequests">
+                0
+            </h2>
+
+            <p>
+                Fulfilled Requests
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="actions">
+
+        <a
+            href="request.html"
+            class="btn"
+        >
+            Create Request
+        </a>
+
+
+        <a
+            href="resources.html"
+            class="btn secondary"
+        >
+            Add Resource
+        </a>
+
+
+        <a
+            href="matching.html"
+            class="btn"
+        >
+            View AI Matches
+        </a>
+
+    </div>
+
+
+    <p
+        id="message"
+        style="margin-top:20px;"
+    ></p>
+
+</div>
+
+
+<script>
+
+async function loadDashboard() {
+
+    const message =
+        document.getElementById(
+            "message"
+        );
+
+    try {
+
+        const response =
+            await fetch(
+                "http://localhost:8083/api/dashboard"
+            );
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            message.innerText =
+                data.error ||
+                "Failed to load dashboard.";
+
+            return;
+        }
+
+
+        document.getElementById(
+            "totalRequests"
+        ).innerText =
+            data.totalRequests;
+
+
+        document.getElementById(
+            "availableResources"
+        ).innerText =
+            data.availableResources;
+
+
+        document.getElementById(
+            "successfulMatches"
+        ).innerText =
+            data.successfulMatches;
+
+
+        document.getElementById(
+            "fulfilledRequests"
+        ).innerText =
+            data.fulfilledRequests;
+
+    }
+
+    catch (error) {
+
+        message.innerText =
+            "Backend server is not running!";
+
+    }
+
+}
+
+
+loadDashboard();
+
+</script>
+
+</body>
+
+</html>

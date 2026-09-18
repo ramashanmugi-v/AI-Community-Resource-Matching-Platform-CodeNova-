@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>AI Matching - CommunityMatch</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+    <style>
+
+        .priority {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: #fef3c7;
+            color: #92400e;
+            font-weight: bold;
+        }
+
+        .distance-box {
+            margin: 15px 0;
+            padding: 14px;
+            background: #f0fdf4;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #166534;
+        }
+
+        .nearest-badge {
+            display: inline-block;
+            margin-bottom: 15px;
+            padding: 7px 14px;
+            border-radius: 20px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-weight: bold;
+        }
+
+        .status-message {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<nav>
+
+    <h2>CommunityMatch</h2>
+
+    <div>
+
+        <a href="index.html">
+            Home
+        </a>
+
+        <a href="dashboard.html">
+            Dashboard
+        </a>
+
+        <a href="request.html">
+            Request Help
+        </a>
+
+        <a href="resources.html">
+            Resources
+        </a>
+
+        <a href="matching.html">
+            AI Matching
+        </a>
+
+    </div>
+
+</nav>
+
+
+<div class="container">
+
+    <h1>
+        AI Resource Matching
+    </h1>
+
+    <p>
+        Finding the most suitable and nearest available resource.
+    </p>
+
+
+    <div id="loading">
+        Loading matches...
+    </div>
+
+
+    <div id="matches"></div>
+
+
+    <p
+        id="message"
+        class="status-message"
+    ></p>
+
+</div>
+
+
+<script>
+
+async function loadMatches() {
+
+    const loading =
+        document.getElementById("loading");
+
+    const matchesDiv =
+        document.getElementById("matches");
+
+    const message =
+        document.getElementById("message");
+
+
+    loading.innerText =
+        "Finding suitable resources...";
+
+    matchesDiv.innerHTML = "";
+    message.innerText = "";
+
+
+    try {
+
+        const response =
+            await fetch(
+                "http://localhost:8083/api/matches"
+            );
+
+
+        const data =
+            await response.json();
+
+
+        loading.innerText = "";
+
+
+        if (!response.ok) {
+
+            message.innerText =
+                data.error ||
+                "Failed to load matches.";
+
+            return;
+        }
+
+
+        if (data.length === 0) {
+
+            matchesDiv.innerHTML = `
+
+                <div class="match-card">
+
+                    <h2>
+                        No Matches Found
+                    </h2>
+
+                    <p>
+                        No suitable resource is
+                        currently available for
+                        pending requests.
+                    </p>
+
+                </div>
+
+            `;
+
+            return;
+        }
+
+
+        data.forEach(match => {
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+
+            card.className =
+                "match-card";
+
+
+            let distanceText =
+                "GPS location unavailable";
+
+
+            if (
+                match.distanceKm !== null &&
+                match.distanceKm !== undefined
+            ) {
+
+                distanceText =
+                    match.distanceKm + " km";
+
+            }
+
+
+            card.innerHTML = `
+
+                <span class="nearest-badge">
+                    Nearest Suitable Resource
+                </span>
+
+
+                <h2>
+                    Request #${match.requestId}
+                </h2>
+
+
+                <p>
+                    <strong>
+                        Requester:
+                    </strong>
+                    ${match.requesterName}
+                </p>
+
+
+                <p>
+                    <strong>
+                        Category:
+                    </strong>
+                    ${match.requestCategory}
+                </p>
+
+
+                <p>
+                    <strong>
+                        Description:
+                    </strong>
+                    ${match.requestDescription}
+                </p>
+
+
+                <p>
+                    <strong>
+                        Quantity:
+                    </strong>
+                    ${match.requestQuantity}
+                </p>
+
+
+                <p>
+                    <strong>
+                        Location:
+                    </strong>
+                    ${match.requestLocation}
+                </p>
+
+
+                <p>
+                    <strong>
+                        Priority:
+                    </strong>
+
+                    <span class="priority">
+                        ${match.priority}
+                    </span>
+
+                </p>
+
+
+                <hr>
+
+
+                <h3>
+                    Recommended Resource
+                </h3>
+
+
+                <p>
+                    <strong>
+                        Provider:
+                    </strong>
+                    ${match.providerName}
+                </p>
+
+
+                <p>
+                    <strong>
+                        Resource:
+                    </strong>
+                    ${match.resourceDescription}
+                </p>
+
+
+                <p>
+                    <strong>
+                        Available Quantity:
+                    </strong>
+                    ${match.resourceQuantity}
+                </p>
+
+
+                <p>
+                    <strong>
+                        Location:
+                    </strong>
+                    ${match.resourceLocation}
+                </p>
+
+
+                <div class="distance-box">
+
+                    📍 Distance:
+                    ${distanceText}
+
+                </div>
+
+
+                <div class="match-score">
+
+                    Match Score:
+                    ${match.score}%
+
+                </div>
+
+
+                <button
+                    class="btn"
+                    onclick="
+                        allocateResource(
+                            ${match.requestId},
+                            ${match.resourceId},
+                            ${match.requestQuantity}
+                        )
+                    "
+                >
+                    Allocate Resource
+                </button>
+
+            `;
+
+
+            matchesDiv.appendChild(card);
+
+        });
+
+    }
+
+
+    catch (error) {
+
+        loading.innerText = "";
+
+        message.innerText =
+            "Connection Error: " +
+            error.message;
+
+    }
+
+}
+
+
+async function allocateResource(
+    requestId,
+    resourceId,
+    quantity
+) {
+
+    const message =
+        document.getElementById(
+            "message"
+        );
+
+
+    message.innerText =
+        "Allocating resource...";
+
+
+    try {
+
+        const response =
+            await fetch(
+                "http://localhost:8083/api/allocate",
+                {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        requestId:
+                            requestId,
+
+                        resourceId:
+                            resourceId,
+
+                        quantity:
+                            quantity
+
+                    })
+
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (response.ok) {
+
+            message.innerText =
+                "✅ " + result.message;
+
+
+            setTimeout(
+                function() {
+
+                    loadMatches();
+
+                },
+                1000
+            );
+
+        }
+
+        else {
+
+            message.innerText =
+                "❌ " +
+                (
+                    result.error ||
+                    "Allocation failed."
+                );
+
+        }
+
+    }
+
+
+    catch (error) {
+
+        message.innerText =
+            "Connection Error: " +
+            error.message;
+
+    }
+
+}
+
+
+loadMatches();
+
+</script>
+
+</body>
+
+</html>
